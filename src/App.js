@@ -1,4 +1,4 @@
-import {  useRef, useState } from 'react';
+import {  useEffect, useRef, useState } from 'react';
 import './App.css';
 import Board from './components/Board';
 import { check } from './services';
@@ -13,7 +13,7 @@ function App() {
   const [state,setState,backward,forward,resetHistory]=useHistoryState(initial);
   const [alert,setAlert] = useState("");
   const [paused,pause] = useState(true);
-  const [cheats,setCheats] = useState(false);
+  const [cheats,setCheats] = useState(0);
   const [dropdown,showDropdown] = useState(false);
   const player = useRef(0);
   const wins = useRef({x:0,o:0});
@@ -54,6 +54,19 @@ function App() {
       player.current=player.current===0?1:0;
     }
   }
+  const handlesetCheats=async()=>{
+    setCheats(!cheats);
+    if(!cheats){
+      localStorage.setItem("cheats",true);
+    }
+    else{
+      localStorage.removeItem("cheats");
+    }
+  }
+  const handlesetTimer=(t)=>{
+    setTimer(t);
+    localStorage.setItem("timer",t);
+  }
   const startGame=()=>{
     pause(false);
   }
@@ -64,6 +77,12 @@ function App() {
     pause(true);
     clear();
   }
+  useEffect(()=>{
+    let t=localStorage.getItem("timer");
+    let c=localStorage.getItem("cheats");
+    t!==null&&setTimer(t);
+    c&&setCheats(true);
+  },[])
   return(
     <>
       { !paused && 
@@ -117,15 +136,15 @@ function App() {
       </motion.h1>
     <div className="menu">
       <Button onClick={startGame}><h1>Start</h1></Button>
-      <Button onClick={()=>{setCheats(!cheats)}}>Cheats : {cheats?"On":"Off"}</Button>
+      <Button onClick={handlesetCheats}>Cheats : {cheats?"On":"Off"}</Button>
       {!cheats && <><div><b>Timer: {timer}</b><Button onClick={()=>showDropdown(!dropdown)}>Change</Button></div>
       <div className="dropdown" style={dropdown?{
         transform:"translateY(0)",
         opacity:'1',
       }:{}}>
-      <Button onClick={()=>setTimer(1000)}>1000</Button>
-      <Button onClick={()=>setTimer(2000)}>2000</Button>
-      <Button onClick={()=>setTimer(3000)}>3000</Button>
+      <Button onClick={()=>handlesetTimer(1000)}>1000</Button>
+      <Button onClick={()=>handlesetTimer(2000)}>2000</Button>
+      <Button onClick={()=>handlesetTimer(3000)}>3000</Button>
       </div></>}
     </div>
     </div>
